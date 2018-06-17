@@ -36,11 +36,6 @@ class RESTBuilder(type):
     def __new__(mcs, name, bases, namespace):
 
         rest_class = super().__new__(mcs, name, bases, namespace)
-        print(namespace)
-
-        def get_self(obj):
-            return(obj)
-        setattr(rest_class, 'get_self', get_self.__get__(rest_class))
 
         for key, value in namespace.items():
             if isinstance(value, APICall):
@@ -50,7 +45,6 @@ class RESTBuilder(type):
                         return obj.parent.client.invoke(url, method, value.result_schema, **kwargs)
 
                     setattr(value, method.lower(), api_func.__get__(value))
-                    print(value.__dict__)
 
         return rest_class
 
@@ -72,6 +66,8 @@ class RESTInterface(metaclass=RESTBuilder):
 
         self.client = client
 
+        # inject ourselves into the APICall objects so that they know
+        # about the client
         for k, v in self.__class__.__dict__.items():
             if isinstance(v, APICall):
                 setattr(v, '_parent', self)
