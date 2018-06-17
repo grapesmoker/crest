@@ -1,41 +1,5 @@
 import re
-import inspect
 from typing import List
-
-
-class APICallBuilder(type):
-
-    def __new__(mcs, name, bases, namespace, **kwargs):
-        api_base = kwargs.get('api_base')
-        endpoint = kwargs.get('endpoint')
-        methods = kwargs.get('methods')
-        result_schema = kwargs.get('result_schema')
-
-        api_class = super().__new__(mcs, name, bases, namespace)
-
-        for method in methods:
-
-            expected_kwargs = mcs.parse_endpoint(endpoint)
-
-            def api_func(obj, client, **kwargs):
-                print(expected_kwargs)
-                url = '{}/{}'.format(api_base, endpoint)
-                client.invoke(url, method, result_schema, kwargs)
-
-            setattr(api_class, method.lower(), api_func)
-
-        return api_class
-
-    @classmethod
-    def parse_endpoint(cls, endpoint: str):
-        """ Parameters to the endpoint e.g. /users/{id} must be in curly braces"""
-        param_regex = re.compile(r'\{(.*?)\}')
-        params = param_regex.search(endpoint)
-        if params:
-            expected_kwargs = param_regex.findall(endpoint)
-        else:
-            expected_kwargs = []
-        return expected_kwargs
 
 
 class APICall(object):
@@ -114,21 +78,3 @@ class RESTInterface(metaclass=RESTBuilder):
 
     def get_self(self):
         return self
-
-
-# class Foo(RESTInterface):
-#
-#     foo = Get('users', None, 'api')
-
-
-
-
-# want to be able to write:
-
-# class Foo(object):
-#
-#     access = APICall('access', 'GET', 'access', AccessSchema)
-#     config = APICall('access', 'GET', 'access/config', AccessConfigSchema)
-#
-# f = Foo()
-# f.access(client)
