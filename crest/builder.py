@@ -4,7 +4,7 @@ from typing import List
 
 class APICall(object):
 
-    def __init__(self, methods: List[str], endpoint: str, result_schema, api_base: str=''):
+    def __init__(self, methods: List[str], endpoint: str, result_schema=None, request_schema=None, api_base: str=''):
 
         self.methods = methods
         self.api_base = api_base
@@ -21,14 +21,47 @@ class APICall(object):
 
 class Get(APICall):
 
-    def __init__(self, endpoint, result_schema, api_base=''):
-        super(Get, self).__init__(['GET'], endpoint, result_schema, api_base=api_base)
+    def __init__(self, endpoint, result_schema=None, request_schema=None, api_base=''):
+        super(Get, self).__init__(['GET'], endpoint,
+                                  result_schema=result_schema,
+                                  request_schema=request_schema,
+                                  api_base=api_base)
 
 
 class Post(APICall):
 
-    def __init__(self, endpoint, result_schema, api_base=''):
-        super(Post, self).__init__(['POST'], endpoint, result_schema, api_base=api_base)
+    def __init__(self, endpoint, result_schema=None, request_schema=None, api_base=''):
+        super(Post, self).__init__(['POST'], endpoint,
+                                   result_schema=result_schema,
+                                   request_schema=request_schema,
+                                   api_base=api_base)
+
+
+class Put(APICall):
+
+    def __init__(self, endpoint, result_schema=None, request_schema=None, api_base=''):
+        super(Put, self).__init__(['PUT'], endpoint,
+                                  result_schema=result_schema,
+                                  request_schema=request_schema,
+                                  api_base=api_base)
+
+
+class Delete(APICall):
+
+    def __init__(self, endpoint, result_schema=None, request_schema=None, api_base=''):
+        super(Delete, self).__init__(['DELETE'], endpoint,
+                                     result_schema=result_schema,
+                                     request_schema=request_schema,
+                                     api_base=api_base)
+
+
+class GetPost(APICall):
+
+    def __init__(self, endpoint, result_schema=None, request_schema=None, api_base=''):
+        super(GetPost, self).__init__(['GET', 'POST'], endpoint,
+                                      result_schema=result_schema,
+                                      request_schema=request_schema,
+                                      api_base=api_base)
 
 
 class RESTBuilder(type):
@@ -37,16 +70,31 @@ class RESTBuilder(type):
 
         rest_class = super().__new__(mcs, name, bases, namespace)
 
+        global_api_base = namespace.get('api_base', None)
+
         for key, value in namespace.items():
             if isinstance(value, APICall):
                 for method in value.methods:
-                    def api_func(obj, **kwargs):
-                        url = '{}/{}'.format(value.api_base, value.endpoint)
-                        return obj.parent.client.invoke(url, method, value.result_schema, **kwargs)
-
+                    api_func = mcs.make_method_function(global_api_base, value, method)
                     setattr(value, method.lower(), api_func.__get__(value))
 
         return rest_class
+
+    @classmethod
+    def make_method_function(mcs, global_api_base, obj, method):
+
+        def api_func(api_call_obj, **kwargs):
+            if api_call_obj.api_base == '' and global_api_base:
+                api_base = global_api_base
+            elif api_call_obj.api_base != '':
+                api_base = api_call_obj.api_base
+            else:
+                api_base = ''
+            url = '{}/{}'.format(api_base, obj.endpoint)
+            return api_call_obj.parent.client.invoke(url, method, api_call_obj.result_schema, **kwargs)
+
+        return api_func
+
 
     @classmethod
     def parse_endpoint(mcs, endpoint: str):
