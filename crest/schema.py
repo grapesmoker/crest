@@ -26,5 +26,6 @@ class JSONSchema(BaseSchema):
         return self._schema
 
     def validate(self, obj):
-        return jsonschema.validate(obj, self._schema)
+        jsonschema.validate(obj, self._schema)
+        return True
 
