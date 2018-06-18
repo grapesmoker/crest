@@ -1,7 +1,9 @@
 import unittest
+import jsonschema
 
 from crest.builder import RESTInterface, RESTBuilder, Get, Post, Delete, Put, GetPost
 from crest.client import Client
+from crest.schema import JSONSchema
 
 
 class TestBuilder(unittest.TestCase):
@@ -138,3 +140,64 @@ class TestBuilder(unittest.TestCase):
 
         result = test_rest.user.get(id=2)
         self.assertEqual(result, expected)
+
+    def test_with_schema_validation(self):
+
+        test_schema = JSONSchema({
+            'title': 'test_user_schema',
+            'type': 'object',
+            'properties': {
+                'data': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {
+                            'type': 'number'
+                        },
+                        'first_name': {
+                            'type': 'string'
+                        },
+                        'last_name': {
+                            'type': 'string',
+                        },
+                        'avatar': {
+                            'type': 'string'
+                        }
+                    }
+                }
+            }
+        })
+
+        class TestREST(RESTInterface):
+
+            user = GetPost('users/{id}', api_base='api', result_schema=test_schema)
+
+        test_rest = TestREST(self.client)
+        result = test_rest.user.get(id=2)
+
+        test_schema = JSONSchema({
+            'title': 'test_user_schema',
+            'type': 'object',
+            'properties': {
+                'data': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {
+                            'type': 'number'
+                        },
+                        'first_name': {
+                            'type': 'string'
+                        },
+                        'last_name': {
+                            'type': 'string',
+                        },
+                        # returned value is a string
+                        'avatar': {
+                            'type': 'number'
+                        }
+                    }
+                }
+            }
+        })
+
+        with self.assertRaises(jsonschema.exceptions.ValidationError):
+            result = self.client.invoke('api/users/{id}', 'GET', result_schema=test_schema, id=2)

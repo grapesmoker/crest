@@ -91,7 +91,7 @@ class RESTBuilder(type):
             else:
                 api_base = ''
             url = '{}/{}'.format(api_base, obj.endpoint)
-            return api_call_obj.parent.client.invoke(url, method, api_call_obj.result_schema, **kwargs)
+            return api_call_obj.parent.client.invoke(url, method, result_schema=api_call_obj.result_schema, **kwargs)
 
         return api_func
 
