@@ -2,7 +2,7 @@ import re
 from typing import List
 
 
-class APICall(object):
+class RESTCall(object):
 
     def __init__(self, methods: List[str], endpoint: str, result_schema=None, request_schema=None, api_base: str=''):
 
@@ -19,7 +19,7 @@ class APICall(object):
             return None
 
 
-class Get(APICall):
+class Get(RESTCall):
 
     def __init__(self, endpoint, result_schema=None, request_schema=None, api_base=''):
         super(Get, self).__init__(['GET'], endpoint,
@@ -28,7 +28,7 @@ class Get(APICall):
                                   api_base=api_base)
 
 
-class Post(APICall):
+class Post(RESTCall):
 
     def __init__(self, endpoint, result_schema=None, request_schema=None, api_base=''):
         super(Post, self).__init__(['POST'], endpoint,
@@ -37,7 +37,7 @@ class Post(APICall):
                                    api_base=api_base)
 
 
-class Put(APICall):
+class Put(RESTCall):
 
     def __init__(self, endpoint, result_schema=None, request_schema=None, api_base=''):
         super(Put, self).__init__(['PUT'], endpoint,
@@ -46,7 +46,7 @@ class Put(APICall):
                                   api_base=api_base)
 
 
-class Delete(APICall):
+class Delete(RESTCall):
 
     def __init__(self, endpoint, result_schema=None, request_schema=None, api_base=''):
         super(Delete, self).__init__(['DELETE'], endpoint,
@@ -55,7 +55,7 @@ class Delete(APICall):
                                      api_base=api_base)
 
 
-class GetPost(APICall):
+class GetPost(RESTCall):
 
     def __init__(self, endpoint, result_schema=None, request_schema=None, api_base=''):
         super(GetPost, self).__init__(['GET', 'POST'], endpoint,
@@ -73,7 +73,7 @@ class RESTBuilder(type):
         global_api_base = namespace.get('api_base', None)
 
         for key, value in namespace.items():
-            if isinstance(value, APICall):
+            if isinstance(value, RESTCall):
                 for method in value.methods:
                     api_func = mcs.make_method_function(global_api_base, value, method)
                     setattr(value, method.lower(), api_func.__get__(value))
@@ -117,7 +117,7 @@ class RESTInterface(metaclass=RESTBuilder):
         # inject ourselves into the APICall objects so that they know
         # about the client
         for k, v in self.__class__.__dict__.items():
-            if isinstance(v, APICall):
+            if isinstance(v, RESTCall):
                 setattr(v, '_parent', self)
 
     def get_self(self):
