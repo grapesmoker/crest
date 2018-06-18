@@ -1,6 +1,8 @@
 import unittest
+import jsonschema
 
 from crest.client import Client
+from crest.schema import JSONSchema
 
 
 class TestClient(unittest.TestCase):
@@ -99,6 +101,79 @@ class TestClient(unittest.TestCase):
         token = result['token']
         print(token)
 
-    def test_auth_user(self):
+    def test_with_schema_validation(self):
 
-        pass
+        result_schema = JSONSchema({
+            'title': 'test_user_schema',
+            'type': 'object',
+            'properties': {
+                'data': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {
+                            'type': 'number'
+                        },
+                        'first_name': {
+                            'type': 'string'
+                        },
+                        'last_name': {
+                            'type': 'string',
+                        },
+                        'avatar': {
+                            'type': 'string'
+                        }
+                    }
+                }
+            }
+        })
+
+        expected = {
+            "data": {
+                "id": 2,
+                "first_name": "Janet",
+                "last_name": "Weaver",
+                "avatar": "https://s3.amazonaws.com/uifaces/faces/twitter/josephstein/128.jpg"
+            }
+        }
+
+        result = self.client.invoke('api/users/{id}', 'GET', result_schema=result_schema, id=2)
+        self.assertEqual(result, expected)
+
+    def test_with_schema_validation_fail(self):
+
+        result_schema = JSONSchema({
+            'title': 'test_user_schema',
+            'type': 'object',
+            'properties': {
+                'data': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {
+                            'type': 'number'
+                        },
+                        'first_name': {
+                            'type': 'string'
+                        },
+                        'last_name': {
+                            'type': 'string',
+                        },
+                        # returned value is a string
+                        'avatar': {
+                            'type': 'number'
+                        }
+                    }
+                }
+            }
+        })
+
+        expected = {
+            "data": {
+                "id": 2,
+                "first_name": "Janet",
+                "last_name": "Weaver",
+                "avatar": "https://s3.amazonaws.com/uifaces/faces/twitter/josephstein/128.jpg"
+            }
+        }
+
+        with self.assertRaises(jsonschema.exceptions.ValidationError):
+            result = self.client.invoke('api/users/{id}', 'GET', result_schema=result_schema, id=2)

@@ -119,6 +119,3 @@ class RESTInterface(metaclass=RESTBuilder):
         for k, v in self.__class__.__dict__.items():
             if isinstance(v, RESTCall):
                 setattr(v, '_parent', self)
-
-    def get_self(self):
-        return self
