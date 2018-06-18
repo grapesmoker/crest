@@ -1,10 +1,10 @@
-from distutils.core import setup
+from setuptools import setup
 
 
 setup(
     name='cREST',
     version='0.1.0',
-    packages=['crest'],
+    packages=['crest', 'crest.tests'],
     license='LICENSE.txt',
     long_description=open('README').read(),
     install_requires=[
