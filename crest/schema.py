@@ -70,7 +70,7 @@ class JSONSchema(BaseSchema):
 
         def recursive_adjust(schema, key, path):
             value = schema[key]
-            current_path = path + '/' + key
+            current_path = path + '/' + str(key)
             parent = path.split('/')[-1]
             if parent == 'definitions':
                 defined_objects.add(current_path)
@@ -96,6 +96,8 @@ class JSONSchema(BaseSchema):
         path = path.split('/')
         current_element = self.schema
         for elem in path[:-1]:
+            if elem.isnumeric():
+                elem = int(elem)
             current_element = current_element[elem]
         current_element[path[-1]] = value
 
