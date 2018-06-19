@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='cREST',
-    version='0.1.0',
+    version='0.1.1',
     packages=['crest', 'crest.tests'],
     license='LICENSE.txt',
     long_description=open('README.txt').read(),
