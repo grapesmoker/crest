@@ -1,3 +1,4 @@
+import copy
 import json
 import jsonschema
 
@@ -38,7 +39,7 @@ class JSONSchema(BaseSchema):
 
     def replace_objects(self):
         """ Recursively traverse the current schema, replacing
-            any schema objects found in it with their dicts
+            any schema objects found in it with copies of their dicts
         """
 
         def recursive_traverse(schema, key):
@@ -50,7 +51,7 @@ class JSONSchema(BaseSchema):
                 for index, item in enumerate(value):
                     recursive_traverse(item, index)
             elif isinstance(value, JSONSchema):
-                value = schema[key] = value.schema
+                value = schema[key] = copy.deepcopy(value.schema)
                 for subkey in value:
                     recursive_traverse(value, subkey)
 
