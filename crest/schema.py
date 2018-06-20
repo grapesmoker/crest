@@ -31,10 +31,8 @@ class JSONSchema(BaseSchema):
                 schema = json.loads(schema)
             except json.JSONDecodeError as ex:
                 # guess not, fail silently
-                pass
-            # maybe this is a path to a file
-
-            schema = json.load(open(os.path.abspath(schema)))
+                # maybe this is a path to a file
+                schema = json.load(open(os.path.abspath(schema)))
 
         super(JSONSchema, self).__init__(schema)
         self.replace_objects()
