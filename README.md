@@ -112,3 +112,14 @@ cREST implements a relabeling mechanism which crawls the of the outermost schema
 ```
 
 Note how the `$ref` inside the `inner_schema` contains the proper location of the definition of the `point` object. Schemas can be nested indefinitely, but not mutually-recursively (yet). Also, when you nest one schema inside another, the initializer makes a copy of the underlying dict, so you don't have to worry about your internally nested schema being modified.
+
+## Validating return data
+
+The extended JSON Schema can be used to automatically validate return values from REST endpoints, like so:
+
+```python
+users_schema = JSONSchema({...})
+my_interface.users.get(result_schema=users_schema)  # returns a list of users, but validates first
+```
+
+cREST does minimal error checking: if the response can be cast into JSON it will be, otherwise an object will be returned with information about why that couldn't happen. Schema validation is optional, but if it fails, it will throw an error, and it's the caller's responsibility to handle the exception.
