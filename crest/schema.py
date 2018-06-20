@@ -1,7 +1,7 @@
 import copy
 import json
 import jsonschema
-
+import os
 from abc import abstractmethod
 
 
@@ -24,6 +24,18 @@ class BaseSchema(object):
 class JSONSchema(BaseSchema):
 
     def __init__(self, schema, recompute_refs=True):
+
+        if isinstance(schema, str):
+            # maybe this is a string in json?
+            try:
+                schema = json.loads(schema)
+            except json.JSONDecodeError as ex:
+                # guess not, fail silently
+                pass
+            # maybe this is a path to a file
+
+            schema = json.load(open(os.path.abspath(schema)))
+
         super(JSONSchema, self).__init__(schema)
         self.replace_objects()
         if recompute_refs:
