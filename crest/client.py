@@ -1,3 +1,4 @@
+import simplejson
 import requests
 
 
@@ -40,9 +41,25 @@ class Client(object):
             else:
                 result = requests.get(url, params=params, headers=self.headers)
 
-            if result_schema:
-                result_schema.validate(result.json())
-            return result.json()
+            try:
+                result_json = result.json()
+            except simplejson.JSONDecodeError as ex:
+                return {
+                    'code': result.status_code,
+                    'content': result.content,
+                    'message': result.reason(),
+                    'error': ex.msg
+                }
+
+            if result.status_code in [200, 201]:
+                result_schema.validate(result_json)
+                return result_json
+            else:
+                return {
+                    'code': result.status_code,
+                    'response': result_json,
+                    'message': result.reason()
+                }
 
         elif method == 'POST':
             self.headers['Content-Type'] = 'application/json'
