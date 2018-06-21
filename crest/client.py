@@ -47,7 +47,7 @@ class Client(object):
                 return {
                     'code': result.status_code,
                     'content': result.content,
-                    'message': result.reason(),
+                    'message': result.reason,
                     'error': ex.msg
                 }
 
@@ -60,7 +60,7 @@ class Client(object):
                 return {
                     'code': result.status_code,
                     'response': result_json,
-                    'message': result.reason()
+                    'message': result.reason
                 }
 
         elif method == 'POST':
