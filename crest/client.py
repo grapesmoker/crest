@@ -41,28 +41,6 @@ class Client(object):
             else:
                 result = requests.get(url, params=params, headers=self.headers)
 
-            try:
-                result_json = result.json()
-            except simplejson.JSONDecodeError as ex:
-                return {
-                    'code': result.status_code,
-                    'content': result.content,
-                    'message': result.reason,
-                    'error': ex.msg
-                }
-
-            if result.status_code in [200, 201] and result_schema:
-                result_schema.validate(result_json)
-                return result_json
-            elif result.status_code in [200, 201] and not result_schema:
-                return result_json
-            else:
-                return {
-                    'code': result.status_code,
-                    'response': result_json,
-                    'message': result.reason
-                }
-
         elif method == 'POST':
             self.headers['Content-Type'] = 'application/json'
             if self.token:
@@ -73,6 +51,44 @@ class Client(object):
             else:
                 result = requests.post(url, json=params, headers=self.headers)
 
-            if result_schema:
-                result_schema.validate(result.json())
-            return result.json()
+        elif method == 'PUT':
+            self.headers['Content-Type'] = 'application/json'
+            if self.token:
+                self.headers['Authorization'] = self.token
+                result = requests.put(url, json=params, headers=self.headers)
+            elif self.auth:
+                result = requests.put(url, auth=self.auth, json=params, headers=self.headers)
+            else:
+                result = requests.put(url, json=params, headers=self.headers)
+
+        elif method == 'DELETE':
+            self.headers['Content-Type'] = 'application/json'
+            if self.token:
+                self.headers['Authorization'] = self.token
+                result = requests.delete(url, params=params, headers=self.headers)
+            elif self.auth:
+                result = requests.delete(url, auth=self.auth, params=params, headers=self.headers)
+            else:
+                result = requests.delete(url, params=params, headers=self.headers)
+
+        try:
+            result_json = result.json()
+        except simplejson.JSONDecodeError as ex:
+            return {
+                'code': result.status_code,
+                'content': result.content,
+                'message': result.reason,
+                'error': ex.msg
+            }
+
+        if result.status_code in [200, 201] and result_schema:
+            result_schema.validate(result_json)
+            return result_json
+        elif result.status_code in [200, 201] and not result_schema:
+            return result_json
+        else:
+            return {
+                'code': result.status_code,
+                'response': result_json,
+                'message': result.reason
+            }
