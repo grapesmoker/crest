@@ -28,9 +28,6 @@ class Client(object):
 
         params = kwargs.pop('params', None)
 
-        if request_schema is not None:
-            request_schema.validate(params)
-
         url = (self.url + '/' + endpoint).format(**kwargs)
         if method == 'GET':
             if self.token:
@@ -42,6 +39,8 @@ class Client(object):
                 result = requests.get(url, params=params, headers=self.headers)
 
         elif method == 'POST':
+            if request_schema is not None:
+                request_schema.validate(params)
             self.headers['Content-Type'] = 'application/json'
             if self.token:
                 self.headers['Authorization'] = self.token
@@ -52,6 +51,8 @@ class Client(object):
                 result = requests.post(url, json=params, headers=self.headers)
 
         elif method == 'PUT':
+            if request_schema is not None:
+                request_schema.validate(params)
             self.headers['Content-Type'] = 'application/json'
             if self.token:
                 self.headers['Authorization'] = self.token
