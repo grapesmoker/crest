@@ -66,11 +66,11 @@ class Client(object):
             self.headers['Content-Type'] = 'application/json'
             if self.token:
                 self.headers['Authorization'] = self.token
-                result = requests.delete(url, params=params, headers=self.headers)
+                result = requests.delete(url, json=params, headers=self.headers)
             elif self.auth:
                 result = requests.delete(url, auth=self.auth, params=params, headers=self.headers)
             else:
-                result = requests.delete(url, params=params, headers=self.headers)
+                result = requests.delete(url, json=params, headers=self.headers)
 
         try:
             result_json = result.json()
