@@ -82,10 +82,10 @@ class Client(object):
                 'error': ex.msg
             }
 
-        if result.status_code in [200, 201] and result_schema:
+        if result.status_code in [200, 201, 202] and result_schema:
             result_schema.validate(result_json)
             return result_json
-        elif result.status_code in [200, 201] and not result_schema:
+        elif result.status_code in [200, 201, 202] and not result_schema:
             return result_json
         else:
             return {
