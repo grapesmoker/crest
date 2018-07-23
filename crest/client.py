@@ -27,6 +27,7 @@ class Client(object):
     def invoke(self, endpoint, method, result_schema=None, request_schema=None, **kwargs):
 
         params = kwargs.pop('params', None)
+        body = kwargs.pop('body', None)
 
         url = (self.url + '/' + endpoint).format(**kwargs)
         if method == 'GET':
@@ -44,11 +45,11 @@ class Client(object):
             self.headers['Content-Type'] = 'application/json'
             if self.token:
                 self.headers['Authorization'] = self.token
-                result = requests.post(url, json=params, headers=self.headers)
+                result = requests.post(url, json=body, headers=self.headers)
             elif self.auth:
-                result = requests.post(url, auth=self.auth, json=params, headers=self.headers)
+                result = requests.post(url, auth=self.auth, json=body, headers=self.headers)
             else:
-                result = requests.post(url, json=params, headers=self.headers)
+                result = requests.post(url, json=body, headers=self.headers)
 
         elif method == 'PUT':
             if request_schema is not None:
@@ -56,11 +57,11 @@ class Client(object):
             self.headers['Content-Type'] = 'application/json'
             if self.token:
                 self.headers['Authorization'] = self.token
-                result = requests.put(url, json=params, headers=self.headers)
+                result = requests.put(url, json=body, headers=self.headers)
             elif self.auth:
-                result = requests.put(url, auth=self.auth, json=params, headers=self.headers)
+                result = requests.put(url, auth=self.auth, json=body, headers=self.headers)
             else:
-                result = requests.put(url, json=params, headers=self.headers)
+                result = requests.put(url, json=body, headers=self.headers)
 
         elif method == 'DELETE':
             self.headers['Content-Type'] = 'application/json'

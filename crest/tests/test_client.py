@@ -87,7 +87,7 @@ class TestClient(unittest.TestCase):
     def test_post_user(self):
 
         data = {'name': 'morpheus', 'job': 'leader'}
-        result = self.client.invoke('api/users', 'POST', params=data)
+        result = self.client.invoke('api/users', 'POST', body=data)
         self.assertEqual(result['name'], 'morpheus')
         self.assertEqual(result['job'], 'leader')
         self.assertIn('id', result)
@@ -96,7 +96,7 @@ class TestClient(unittest.TestCase):
     def test_register(self):
 
         data = {'email': 'joe@schmoe.com', 'password': 'password'}
-        result = self.client.invoke('api/register', 'POST', params=data)
+        result = self.client.invoke('api/register', 'POST', body=data)
         self.assertIn('token', result)
         token = result['token']
         print(token)
