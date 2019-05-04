@@ -1,13 +1,9 @@
 import unittest
-import jsonschema
 import marshmallow
 
 from marshmallow import Schema, fields
 from crest.builder import RESTInterface, RESTBuilder, Get, Post, Delete, Put, GetPost
 from crest.client import Client
-from crest.schema import JSONSchema
-
-import pytest
 
 
 class TestBuilder(unittest.TestCase):

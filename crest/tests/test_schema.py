@@ -1,8 +1,6 @@
 import unittest
 import jsonschema
 
-from crest.schema import BaseSchema, JSONSchema
-
 
 class TestSchema(unittest.TestCase):
 
