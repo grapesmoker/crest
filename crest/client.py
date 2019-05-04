@@ -27,6 +27,7 @@ class Client(object):
     def invoke(self, endpoint, method, result_schema=None, request_schema=None, **kwargs):
 
         params = kwargs.pop('params', None)
+        body = kwargs.pop('body', None)
 
         url = (self.url + '/' + endpoint).format(**kwargs)
         if method == 'GET':
@@ -40,27 +41,27 @@ class Client(object):
 
         elif method == 'POST':
             if request_schema is not None:
-                request_schema.validate(params)
+                request_schema.load(params)
             self.headers['Content-Type'] = 'application/json'
             if self.token:
                 self.headers['Authorization'] = self.token
-                result = requests.post(url, json=params, headers=self.headers)
+                result = requests.post(url, json=body, headers=self.headers)
             elif self.auth:
-                result = requests.post(url, auth=self.auth, json=params, headers=self.headers)
+                result = requests.post(url, auth=self.auth, json=body, headers=self.headers)
             else:
-                result = requests.post(url, json=params, headers=self.headers)
+                result = requests.post(url, json=body, headers=self.headers)
 
         elif method == 'PUT':
             if request_schema is not None:
-                request_schema.validate(params)
+                request_schema.load(params)
             self.headers['Content-Type'] = 'application/json'
             if self.token:
                 self.headers['Authorization'] = self.token
-                result = requests.put(url, json=params, headers=self.headers)
+                result = requests.put(url, json=body, headers=self.headers)
             elif self.auth:
-                result = requests.put(url, auth=self.auth, json=params, headers=self.headers)
+                result = requests.put(url, auth=self.auth, json=body, headers=self.headers)
             else:
-                result = requests.put(url, json=params, headers=self.headers)
+                result = requests.put(url, json=body, headers=self.headers)
 
         elif method == 'DELETE':
             self.headers['Content-Type'] = 'application/json'
@@ -71,6 +72,9 @@ class Client(object):
                 result = requests.delete(url, auth=self.auth, params=params, headers=self.headers)
             else:
                 result = requests.delete(url, params=params, headers=self.headers)
+
+        else:
+            raise NotImplementedError('{} is not implemented'.format(method))
 
         try:
             result_json = result.json()
@@ -83,8 +87,7 @@ class Client(object):
             }
 
         if result.status_code in [200, 201, 202] and result_schema:
-            result_schema.validate(result_json)
-            return result_json
+            return result_schema.load(result_json)
         elif result.status_code in [200, 201, 202] and not result_schema:
             return result_json
         else:

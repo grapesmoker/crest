@@ -1,9 +1,9 @@
 import unittest
-import jsonschema
+import marshmallow
 
+from marshmallow import Schema, fields
 from crest.builder import RESTInterface, RESTBuilder, Get, Post, Delete, Put, GetPost
 from crest.client import Client
-from crest.schema import JSONSchema
 
 
 class TestBuilder(unittest.TestCase):
@@ -143,61 +143,47 @@ class TestBuilder(unittest.TestCase):
 
     def test_with_schema_validation(self):
 
-        test_schema = JSONSchema({
-            'title': 'test_user_schema',
-            'type': 'object',
-            'properties': {
-                'data': {
-                    'type': 'object',
-                    'properties': {
-                        'id': {
-                            'type': 'number'
-                        },
-                        'first_name': {
-                            'type': 'string'
-                        },
-                        'last_name': {
-                            'type': 'string',
-                        },
-                        'avatar': {
-                            'type': 'string'
-                        }
-                    }
-                }
-            }
-        })
+        class GoodUserSchema(Schema):
+            id = fields.Integer()
+            first_name = fields.String()
+            last_name = fields.String()
+            avatar = fields.URL()
+
+        class BadUserSchema(Schema):
+            id = fields.Integer()
+            first_name = fields.String()
+            last_name = fields.String()
+            avatar = fields.Number()
+
+        class GoodDataSchema(Schema):
+            data = fields.Nested(GoodUserSchema)
+
+        class BadDataSchema(Schema):
+            data = fields.Nested(BadUserSchema)
+
+        result_schema = GoodDataSchema()
 
         class TestREST(RESTInterface):
-
-            user = GetPost('users/{id}', api_base='api', result_schema=test_schema)
+            user = GetPost('users/{id}', api_base='api', result_schema=result_schema)
 
         test_rest = TestREST(self.client)
         result = test_rest.user.get(id=2)
+        self.assertIsNotNone(result)
 
-        test_schema = JSONSchema({
-            'title': 'test_user_schema',
-            'type': 'object',
-            'properties': {
-                'data': {
-                    'type': 'object',
-                    'properties': {
-                        'id': {
-                            'type': 'number'
-                        },
-                        'first_name': {
-                            'type': 'string'
-                        },
-                        'last_name': {
-                            'type': 'string',
-                        },
-                        # returned value is a string
-                        'avatar': {
-                            'type': 'number'
-                        }
-                    }
-                }
-            }
-        })
+        result_schema = BadDataSchema()
 
-        with self.assertRaises(jsonschema.exceptions.ValidationError):
-            result = self.client.invoke('api/users/{id}', 'GET', result_schema=test_schema, id=2)
+        with self.assertRaises(marshmallow.exceptions.ValidationError):
+            result = self.client.invoke('api/users/{id}', 'GET', result_schema=result_schema, id=2)
+
+    def test_not_implemented(self):
+
+        class TestREST(RESTInterface):
+            user = GetPost('users/{id}', api_base='api')
+
+        test_rest = TestREST(self.client)
+
+        with self.assertRaises(NotImplementedError):
+            test_rest.user.delete(id=2)
+
+# TODO: write some tests for validating on the request schema
+# TODO: refactor tests

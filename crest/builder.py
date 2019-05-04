@@ -1,15 +1,19 @@
 import re
+
+from marshmallow import Schema
 from typing import List
 
 
 class RESTCall(object):
 
-    def __init__(self, methods: List[str], endpoint: str, result_schema=None, request_schema=None, api_base: str=''):
+    def __init__(self, methods: List[str], endpoint: str, result_schema: Schema=None,
+                 request_schema: Schema=None, api_base: str=''):
 
         self.methods = methods
         self.api_base = api_base
         self.endpoint = endpoint
         self.result_schema = result_schema
+        self.request_schema = request_schema
 
     @property
     def parent(self):
@@ -18,6 +22,59 @@ class RESTCall(object):
         else:
             return None
 
+    def get(self, **kwargs):
+        if hasattr(self, '_GET'):
+            return self._GET(**kwargs)
+        else:
+            raise NotImplementedError('GET not implemented.')
+
+    def put(self, **kwargs):
+        if hasattr(self, '_PUT'):
+            return self._PUT(**kwargs)
+        else:
+            raise NotImplementedError('PUT not implemented.')
+
+    def post(self, **kwargs):
+        if hasattr(self, '_POST'):
+            return self._POST(**kwargs)
+        else:
+            raise NotImplementedError('POST not implemented.')
+
+    def delete(self, **kwargs):
+        if hasattr(self, '_DELETE'):
+            return self._DELETE(**kwargs)
+        else:
+            raise NotImplementedError('DELETE not implemented.')
+
+    def patch(self, **kwargs):
+        if hasattr(self, '_PATCH'):
+            return self._PATCH(**kwargs)
+        else:
+            raise NotImplementedError('PATCH not implemented.')
+
+    def connect(self, **kwargs):
+        if hasattr(self, '_CONNECT'):
+            return self._CONNECT(**kwargs)
+        else:
+            raise NotImplementedError('CONNECT not implemented.')
+
+    def options(self, **kwargs):
+        if hasattr(self, '_OPTIONS'):
+            return self._OPTIONS(**kwargs)
+        else:
+            raise NotImplementedError('OPTIONS not implemented.')
+
+    def trace(self, **kwargs):
+        if hasattr(self, '_TRACE'):
+            return self._TRACE(**kwargs)
+        else:
+            raise NotImplementedError('TRACE not implemented.')
+
+    def head(self, **kwargs):
+        if hasattr(self, '_HEAD'):
+            return self._HEAD(**kwargs)
+        else:
+            raise NotImplementedError('HEAD not implemented.')
 
 class Get(RESTCall):
 
@@ -76,7 +133,7 @@ class RESTBuilder(type):
             if isinstance(value, RESTCall):
                 for method in value.methods:
                     api_func = mcs.make_method_function(global_api_base, value, method)
-                    setattr(value, method.lower(), api_func.__get__(value))
+                    setattr(value, '_{}'.format(method.upper()), api_func.__get__(value))
 
         return rest_class
 
