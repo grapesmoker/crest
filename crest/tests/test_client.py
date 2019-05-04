@@ -1,6 +1,7 @@
 import unittest
-import jsonschema
+import marshmallow
 
+from marshmallow import Schema, fields
 from crest.client import Client
 from crest.schema import JSONSchema
 
@@ -99,33 +100,19 @@ class TestClient(unittest.TestCase):
         result = self.client.invoke('api/register', 'POST', body=data)
         self.assertIn('token', result)
         token = result['token']
-        print(token)
 
     def test_with_schema_validation(self):
 
-        result_schema = JSONSchema({
-            'title': 'test_user_schema',
-            'type': 'object',
-            'properties': {
-                'data': {
-                    'type': 'object',
-                    'properties': {
-                        'id': {
-                            'type': 'number'
-                        },
-                        'first_name': {
-                            'type': 'string'
-                        },
-                        'last_name': {
-                            'type': 'string',
-                        },
-                        'avatar': {
-                            'type': 'string'
-                        }
-                    }
-                }
-            }
-        })
+        class UserSchema(Schema):
+            id = fields.Integer()
+            first_name = fields.String()
+            last_name = fields.String()
+            avatar = fields.URL()
+
+        class ResultSchema(Schema):
+            data = fields.Nested(UserSchema)
+
+        result_schema = ResultSchema()
 
         expected = {
             "data": {
@@ -141,30 +128,16 @@ class TestClient(unittest.TestCase):
 
     def test_with_schema_validation_fail(self):
 
-        result_schema = JSONSchema({
-            'title': 'test_user_schema',
-            'type': 'object',
-            'properties': {
-                'data': {
-                    'type': 'object',
-                    'properties': {
-                        'id': {
-                            'type': 'number'
-                        },
-                        'first_name': {
-                            'type': 'string'
-                        },
-                        'last_name': {
-                            'type': 'string',
-                        },
-                        # returned value is a string
-                        'avatar': {
-                            'type': 'number'
-                        }
-                    }
-                }
-            }
-        })
+        class BadUserSchema(Schema):
+            id = fields.Integer()
+            first_name = fields.String()
+            last_name = fields.String()
+            avatar = fields.Number()
+
+        class BadDataSchema(Schema):
+            data = fields.Nested(BadUserSchema)
+
+        result_schema = BadDataSchema()
 
         expected = {
             "data": {
@@ -175,5 +148,5 @@ class TestClient(unittest.TestCase):
             }
         }
 
-        with self.assertRaises(jsonschema.exceptions.ValidationError):
+        with self.assertRaises(marshmallow.exceptions.ValidationError):
             result = self.client.invoke('api/users/{id}', 'GET', result_schema=result_schema, id=2)

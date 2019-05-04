@@ -41,7 +41,7 @@ class Client(object):
 
         elif method == 'POST':
             if request_schema is not None:
-                request_schema.validate(params)
+                request_schema.load(params)
             self.headers['Content-Type'] = 'application/json'
             if self.token:
                 self.headers['Authorization'] = self.token
@@ -53,7 +53,7 @@ class Client(object):
 
         elif method == 'PUT':
             if request_schema is not None:
-                request_schema.validate(params)
+                request_schema.load(params)
             self.headers['Content-Type'] = 'application/json'
             if self.token:
                 self.headers['Authorization'] = self.token
@@ -73,6 +73,9 @@ class Client(object):
             else:
                 result = requests.delete(url, params=params, headers=self.headers)
 
+        else:
+            raise NotImplementedError('{} is not implemented'.format(method))
+
         try:
             result_json = result.json()
         except simplejson.JSONDecodeError as ex:
@@ -84,8 +87,7 @@ class Client(object):
             }
 
         if result.status_code in [200, 201, 202] and result_schema:
-            result_schema.validate(result_json)
-            return result_json
+            return result_schema.load(result_json)
         elif result.status_code in [200, 201, 202] and not result_schema:
             return result_json
         else:
