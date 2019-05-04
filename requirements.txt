@@ -1,4 +1,4 @@
-requests==2.18.4
+requests==2.20.0
 jsonschema==2.6.0
 simplejson==3.13.2
 marshmallow==3.0.0rc5
